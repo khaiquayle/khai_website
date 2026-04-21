@@ -1,9 +1,10 @@
+import FileSystemConsole from "@/components/FileSystemConsole";
 import ProjectCard from "@/components/ProjectCard";
 import StickyNav from "@/components/StickyNav";
 import { Bot, Recycle, Warehouse } from "lucide-react";
 
 const navLinks = [
-  { href: "#about", label: "About" },
+  { href: "#console", label: "Console" },
   { href: "#education", label: "Education" },
   { href: "#experience", label: "Experience" },
   { href: "#projects", label: "Projects" },
@@ -77,6 +78,26 @@ const projects = [
   },
 ];
 
+const resumeHref = "/KhaiQuayle_Resume_2026_SWE.pdf";
+
+const contactLinks = {
+  email: "khaiquayle6@gmail.com",
+  linkedin: "https://www.linkedin.com/in/khaiquayle",
+  github: "https://github.com/khaiquayle/",
+};
+
+const consoleProjects = projects.map(
+  ({ title, summary, details, stack, contribution, repoLabel, repoUrl }) => ({
+    title,
+    summary,
+    details,
+    stack,
+    contribution,
+    repoLabel,
+    repoUrl,
+  }),
+);
+
 export default function Homepage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.2),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(251,191,36,0.16),transparent_36%)] px-6 py-8 sm:py-12">
@@ -123,7 +144,7 @@ export default function Homepage() {
               </a>
               <a
                 className="inline-flex w-full items-center justify-center rounded-full border border-amber-200/20 bg-amber-200/10 px-5 py-3 text-sm font-semibold text-amber-200 transition hover:-translate-y-0.5 hover:border-amber-200/35 hover:bg-amber-200/15 sm:w-fit"
-                href="/KhaiQuayle_Resume_2026_SWE.pdf"
+                href={resumeHref}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -134,19 +155,23 @@ export default function Homepage() {
         </section>
 
         <section
-          id="about"
-          className="space-y-4 rounded-3xl border border-white/10 bg-black/20 px-6 py-8 backdrop-blur sm:px-8"
+          id="console"
+          className="space-y-6 rounded-3xl border border-white/10 bg-black/20 px-6 py-8 backdrop-blur sm:px-8"
         >
-          <h2 className="text-2xl font-bold sm:text-3xl">About Me</h2>
-          <p className="max-w-3xl text-base leading-8 text-neutral-300">
-            I&apos;m a Computer Science student at Georgia Tech who enjoys
-            building software that is both technically strong and genuinely
-            useful. My experience spans analytics, product development, and
-            automation, from improving cargo workflows at Delta Air Lines to
-            building apps like Sweepy and AI-assisted inventory tools. I&apos;m
-            especially interested in the intersection of AI, people, and the
-            future of software.
-          </p>
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold sm:text-3xl">Dev Console</h2>
+            <p className="max-w-3xl text-base leading-8 text-neutral-300">
+              Prefer exploring to reading? The shell below is a tiny filesystem
+              version of my background. Start with <code className="rounded bg-white/5 px-1.5 py-0.5 text-sm text-neutral-100">ls</code> and follow
+              the trail.
+            </p>
+          </div>
+
+          <FileSystemConsole
+            projects={consoleProjects}
+            resumeHref={resumeHref}
+            contact={contactLinks}
+          />
         </section>
 
         <section
@@ -265,16 +290,16 @@ export default function Homepage() {
 
             <a
               className="inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:-translate-y-0.5 hover:bg-cyan-100 sm:w-fit"
-              href="mailto:khaiquayle6@gmail.com"
+              href={`mailto:${contactLinks.email}`}
             >
-              khaiquayle6@gmail.com
+              {contactLinks.email}
             </a>
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <a
               className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/8"
-              href="mailto:khaiquayle6@gmail.com"
+              href={`mailto:${contactLinks.email}`}
             >
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
                 Email
@@ -285,7 +310,7 @@ export default function Homepage() {
             </a>
             <a
               className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/8"
-              href="https://www.linkedin.com/in/khaiquayle"
+              href={contactLinks.linkedin}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -298,7 +323,7 @@ export default function Homepage() {
             </a>
             <a
               className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/8"
-              href="https://github.com/khaiquayle/"
+              href={contactLinks.github}
               target="_blank"
               rel="noopener noreferrer"
             >
