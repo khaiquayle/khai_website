@@ -284,7 +284,7 @@ function DirectoryListing({
   entries: Array<[string, FsNode]>;
 }) {
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1">
+    <div className="inline-grid grid-cols-1 gap-x-20 gap-y-1.5 min-[440px]:grid-cols-[max-content_max-content] md:grid-cols-[max-content_max-content_max-content]">
       {entries.map(([name, node]) => (
         <span
           key={name}
