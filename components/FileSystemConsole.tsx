@@ -278,6 +278,21 @@ function TerminalLink({
   );
 }
 
+function sortNames(a: string, b: string) {
+  const left = a.toLowerCase();
+  const right = b.toLowerCase();
+
+  if (left < right) {
+    return -1;
+  }
+
+  if (left > right) {
+    return 1;
+  }
+
+  return a.localeCompare(b);
+}
+
 function DirectoryListing({
   entries,
 }: {
@@ -285,7 +300,7 @@ function DirectoryListing({
 }) {
   return (
     <div className="inline-grid grid-cols-1 gap-x-20 gap-y-1.5 min-[440px]:grid-cols-[max-content_max-content] md:grid-cols-[max-content_max-content_max-content]">
-      {entries.map(([name, node]) => (
+      {[...entries].sort(([left], [right]) => sortNames(left, right)).map(([name, node]) => (
         <span
           key={name}
           className={node.type === "dir" ? "text-cyan-200" : "text-neutral-300"}
@@ -594,7 +609,7 @@ export default function FileSystemConsole({
 
         return name.toLowerCase().startsWith(normalizedPrefix);
       })
-      .sort((a, b) => a.localeCompare(b));
+      .sort(sortNames);
 
     if (kind === "dir") {
       if ("..".startsWith(prefix) || prefix === "") {
