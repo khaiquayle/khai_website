@@ -441,7 +441,7 @@ export default function FileSystemConsole({
                 { label: "degree", value: "B.S. in Computer Science" },
                 { label: "minor", value: "Japanese" },
                 { label: "graduating", value: "Dec 2026" },
-                { label: "gpa", value: "3.96" },
+                { label: "gpa", value: "3.97" },
                 { label: "scholarship", value: "Zell Miller" },
               ]}
             />
