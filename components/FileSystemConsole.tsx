@@ -484,7 +484,7 @@ export default function FileSystemConsole({
                 },
                 {
                   label: "tooling",
-                  value: "Docker, Git, Power BI, Pandas, NumPy, Tkinter",
+                  value: "Docker, Git, GitHub Actions, Power BI, Pandas, NumPy, Tkinter",
                 },
               ]}
             />
