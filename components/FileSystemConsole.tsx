@@ -54,6 +54,12 @@ type CommandResult = {
   nextPath?: FsPath;
 };
 
+type AutocompleteOptions = {
+  allowFiles: boolean;
+  allowDirs: boolean;
+  appendSlashToDirs?: boolean;
+};
+
 const PROMPT_USER = "khai@portfolio";
 const GUIDE_FILENAME = "README.txt";
 const SHELL_COMMANDS = ["ls", "cd", "cat", "pwd", "clear"];
@@ -293,13 +299,16 @@ function sortNames(a: string, b: string) {
   return a.localeCompare(b);
 }
 
+const LISTING_GRID_CLASS =
+  "inline-grid grid-cols-1 gap-x-20 gap-y-1.5 min-[440px]:grid-cols-[max-content_max-content] md:grid-cols-[max-content_max-content_max-content]";
+
 function DirectoryListing({
   entries,
 }: {
   entries: Array<[string, FsNode]>;
 }) {
   return (
-    <div className="inline-grid grid-cols-1 gap-x-20 gap-y-1.5 min-[440px]:grid-cols-[max-content_max-content] md:grid-cols-[max-content_max-content_max-content]">
+    <div className={LISTING_GRID_CLASS}>
       {[...entries].sort(([left], [right]) => sortNames(left, right)).map(([name, node]) => (
         <span
           key={name}
@@ -314,7 +323,7 @@ function DirectoryListing({
 
 function CompletionList({ items }: { items: string[] }) {
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1 text-neutral-500">
+    <div className={`${LISTING_GRID_CLASS} text-neutral-500`}>
       {items.map((item) => (
         <span key={item}>{item}</span>
       ))}
@@ -591,27 +600,52 @@ export default function FileSystemConsole({
     ),
   });
 
-  const getCurrentDirectory = () => {
-    const { node } = resolveNode(fileSystem, currentPath);
-    return node?.type === "dir" ? node : fileSystem;
-  };
+  const getPathAutocompleteItems = (
+    prefix: string,
+    options: AutocompleteOptions,
+  ) => {
+    const slashIndex = prefix.lastIndexOf("/");
+    const parentPrefix = slashIndex === -1 ? "" : prefix.slice(0, slashIndex + 1);
+    const leafPrefix = slashIndex === -1 ? prefix : prefix.slice(slashIndex + 1);
 
-  const getAutocompleteItems = (kind: "dir" | "file", prefix: string) => {
-    const directory = getCurrentDirectory();
-    const normalizedPrefix = prefix.toLowerCase();
-    const items = Object.entries(directory.entries)
-      .filter(([, node]) => node.type === kind)
-      .map(([name]) => name)
-      .filter((name) => {
-        if (!prefix.startsWith(".") && name.startsWith(".")) {
+    const parentArg =
+      slashIndex === -1
+        ? "."
+        : prefix.slice(0, slashIndex) ||
+          (prefix.startsWith("/") || prefix.startsWith("~") ? "/" : ".");
+
+    const targetPath = parsePath(currentPath, parentArg);
+    const { node } = resolveNode(fileSystem, targetPath);
+
+    if (!node || node.type !== "dir") {
+      return [];
+    }
+
+    const showHidden = leafPrefix.startsWith(".");
+    const items = Object.entries(node.entries)
+      .filter(([name, childNode]) => {
+        if (!showHidden && name.startsWith(".")) {
           return false;
         }
 
-        return name.toLowerCase().startsWith(normalizedPrefix);
-      })
-      .sort(sortNames);
+        if (childNode.type === "dir" && !options.allowDirs) {
+          return false;
+        }
 
-    if (kind === "dir") {
+        if (childNode.type === "file" && !options.allowFiles) {
+          return false;
+        }
+
+        return name.toLowerCase().startsWith(leafPrefix.toLowerCase());
+      })
+      .sort(([left], [right]) => sortNames(left, right))
+      .map(([name, childNode]) => {
+        const needsSlash =
+          childNode.type === "dir" && options.appendSlashToDirs !== false;
+        return `${parentPrefix}${name}${needsSlash ? "/" : ""}`;
+      });
+
+    if (options.allowDirs && slashIndex === -1) {
       if ("..".startsWith(prefix) || prefix === "") {
         items.unshift("..");
       }
@@ -638,7 +672,7 @@ export default function FileSystemConsole({
     const trimmedStart = value.trimStart();
 
     if (!trimmedStart) {
-      showCompletionOptions(SHELL_COMMANDS);
+      setCompletionOutput(null);
       return;
     }
 
@@ -676,7 +710,11 @@ export default function FileSystemConsole({
 
     if (command === "cd") {
       const prefix = hasTrailingSpace ? "" : argsString;
-      const matches = getAutocompleteItems("dir", prefix);
+      const matches = getPathAutocompleteItems(prefix, {
+        allowFiles: false,
+        allowDirs: true,
+        appendSlashToDirs: false,
+      });
 
       if (matches.length === 1) {
         setInput(`cd ${matches[0]}`);
@@ -690,7 +728,32 @@ export default function FileSystemConsole({
 
     if (command === "cat") {
       const prefix = hasTrailingSpace ? "" : argsString;
-      const matches = getAutocompleteItems("file", prefix);
+      const exactTargetPath = prefix ? parsePath(currentPath, prefix) : null;
+      const exactNode = exactTargetPath
+        ? resolveNode(fileSystem, exactTargetPath).node
+        : null;
+
+      if (prefix && exactNode?.type === "dir") {
+        const nestedPrefix = prefix.endsWith("/") ? prefix : `${prefix}/`;
+        const nestedMatches = getPathAutocompleteItems(nestedPrefix, {
+          allowFiles: true,
+          allowDirs: true,
+        });
+
+        if (nestedMatches.length === 1) {
+          setInput(`cat ${nestedMatches[0]}`);
+          setCompletionOutput(null);
+          return;
+        }
+
+        showCompletionOptions(nestedMatches);
+        return;
+      }
+
+      const matches = getPathAutocompleteItems(prefix, {
+        allowFiles: true,
+        allowDirs: true,
+      });
 
       if (matches.length === 1) {
         setInput(`cat ${matches[0]}`);
